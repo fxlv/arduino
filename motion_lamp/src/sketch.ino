@@ -1,4 +1,3 @@
-
 int motionSensorPin = 3;
 int motionSensorValue = LOW;
 
@@ -18,13 +17,17 @@ void setup(){
 void blinker(int led){
     int i = 0;
     int delay_time = 700;
-    while(i < 20){
+    // keep the light on for ~ 2 minutes
+    while(i < 120){
         digitalWrite(led,HIGH);
         delay(delay_time);
         digitalWrite(led,LOW);
         delay(500);
         i++;
-        delay_time = delay_time - i * 5;
+        // the delay time also is how long the LED will be on
+        // with every iteration the ON time becomes shorter
+        delay_time = delay_time - i;
+        Serial.println(delay_time);
         if(delay_time < 10){
             delay_time = 10;
         }
@@ -44,11 +47,4 @@ void lightOff(){
 int getMotion(){
     motionSensorValue = digitalRead(motionSensorPin);
     return motionSensorValue;
-}
-
-void loop(){
-    while(getMotion()){
-        lightOn();
-    }
-    lightOff(); // tur off the relay
 }
