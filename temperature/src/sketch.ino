@@ -1,5 +1,10 @@
 //
+// These libs are required:
+//
+// https://github.com/PaulStoffregen/OneWire.git
 // https://github.com/milesburton/Arduino-Temperature-Control-Library
+//
+// copy them to /usr/share/arduino/libraries/
 //
 // sensor data pin connected to Arduino pin 2
 // 4.7 K resistor between VCC and DATA
@@ -7,7 +12,7 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
-#define ONE_WIRE_BUS 2
+#define ONE_WIRE_BUS 2 // use pin #2 for data
 
 OneWire oneWire(ONE_WIRE_BUS);
 
