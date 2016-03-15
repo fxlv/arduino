@@ -1,11 +1,10 @@
 
     int motionSensorPin = 3;
-    int motionSensorValue = LOW;
-
     int power_led = 2;
     int motion_led = 5;
     int relayPin = 4;
     int buzzerPin = 6;
+    int led_time;
 
 void warmup(){
     Serial.println("Motion sensor initializing...");
@@ -29,6 +28,7 @@ void setup(){
     pinMode(power_led, OUTPUT);
     pinMode(motion_led, OUTPUT);
     pinMode(relayPin, OUTPUT);
+    pinMode(motionSensorPin, INPUT);
     Serial.begin(9600);
     digitalWrite(relayPin, HIGH); // high == relay off
     warmup();
@@ -85,7 +85,7 @@ void playWarning(){
     delay(500);
 }
 
-void blinker(int led){
+void blinker(){
     int wait_time = 60;
     int i = 0;
     int delay_time = 1000;
@@ -95,14 +95,20 @@ void blinker(int led){
     // keep the light on for 'wait_time' seconds
     while(i < wait_time){
         int remaining_time = wait_time - i;
-        if (remaining_time < 60){
+        // FIXME: this has to be later changed to omething more reasonable 
+
+        // if there's less that 3 minutes remaining, 
+        // and motion is ongoing, add extra wait time
+        if (remaining_time < 180){
         if(getMotion() == HIGH){
             Serial.println("Motion ongoing, adding extra time");
             wait_time = wait_time + 30;
             addBeep();
-            delay(5000);
+            delay(3000); //pir is active for 3 seconds so wait it out
         }
+        
         }
+        
         if(remaining_time == 30){
             if(warning_played != 1){
             playWarning();
@@ -117,21 +123,24 @@ void blinker(int led){
         }
         Serial.print("Remaining time: ");
         Serial.println(remaining_time);
-        digitalWrite(led,HIGH);
-        delay(delay_time);
-        digitalWrite(led,LOW);
-        delay(500);
-        i++;
-        // the delay time also is how long the LED will be on
-        // with every iteration the ON time becomes shorter
-        delay_time = delay_time - i;
-        Serial.println(delay_time);
-        // don't go shorter than 10ms
-        if(delay_time < 10){
-            delay_time = 10;
+        // time led will blink depending on how much time is remaining
+        // if there's more than minute remaining do a long blink,
+        // if less than a minute, do short blink
+        digitalWrite(motion_led,HIGH);
+        if(remaining_time > 60){
+            led_time = 1000;
         }
+
+        if(remaining_time < 60){
+            led_time = 500;
+        }
+        delay(led_time);
+        digitalWrite(motion_led,LOW);
+        delay(delay_time-led_time);
+        i++;
     }
     Serial.println("Wait time is over");
+    delay(1000);
 }
 
 void lightOn(){
@@ -144,7 +153,9 @@ void lightOff(){
 
  
 int getMotion(){
-    motionSensorValue = digitalRead(motionSensorPin);
+    int motionSensorValue = digitalRead(motionSensorPin);
+    Serial.print("Motion value: ");
+    Serial.println(motionSensorValue);
     return motionSensorValue;
 }
 
@@ -155,9 +166,9 @@ void loop(){
         Serial.println("Motion detected");
         lowBeep();
         lightOn();
-        blinker(motion_led);
+        blinker();
         lightOff();
-        delay(100);
+        delay(2000);
     } else {                                                                               
         Serial.println("No motion, waiting...");
         delay(500);                                                                    
